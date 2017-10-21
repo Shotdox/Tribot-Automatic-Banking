@@ -45,8 +45,8 @@ public class ExtraInventory {
 	 * same as the required inventory, and to be able to automatically bank the
 	 * items it doesn't need, and withdraw (and equip) the items it does need.
 	 */
-	public ExtraInventory(Script sArg) {
-		script = sArg;
+	public ExtraInventory() {
+		
 	}
 
 	/**
@@ -82,7 +82,7 @@ public class ExtraInventory {
 		if (amount > 1 && stackSize > 1 || stackSize == 0 || amount == 0) {
 			return false;
 		}
-		
+
 		script.println(nameToId(itemToAdd));
 		return addItem(nameToId(itemToAdd), amount, stackSize);
 	}
@@ -128,21 +128,23 @@ public class ExtraInventory {
 	 * overwrite any item currently in that slot
 	 * 
 	 * @param slot
-	 * @param itemToAdd (string)
+	 * @param itemToAdd
+	 *            (string)
 	 * @param stackSize
 	 *            used for stackable equipment (arrows), should be 1 otherwise
 	 * @return true if the slot was successfully set to the id given
 	 */
-	public Boolean setSlot(Equipment.SLOTS slot, String itemToAdd, int stackSize){
-		return  setSlot(slot, nameToId(itemToAdd), stackSize);
+	public Boolean setSlot(Equipment.SLOTS slot, String itemToAdd, int stackSize) {
+		return setSlot(slot, nameToId(itemToAdd), stackSize);
 	}
-	
+
 	/**
 	 * Manually set one of the equipment slots to a specific item, will
 	 * overwrite any item currently in that slot
 	 * 
 	 * @param slot
-	 * @param itemIdToAdd (int)
+	 * @param itemIdToAdd
+	 *            (int)
 	 * @param stackSize
 	 *            used for stackable equipment (arrows), should be 1 otherwise
 	 * @return true if the slot was successfully set to the id given
@@ -335,13 +337,19 @@ public class ExtraInventory {
 	 * @return true if the inventory was successfully set
 	 */
 	public Boolean fromString(String itemString) {
+		items = new ArrayList<SpecialItem>();
 		matchEquipmentSlots = false;
 		String[] itemStrings = itemString.split("-");
 		try {
 			for (int itemNo = 0; itemNo < itemStrings.length; itemNo++) {
 				String[] itemStringArray = itemStrings[itemNo].split(":");
-
+				
+				if (itemStringArray.length == 0){
+					continue;
+				}
+				
 				if (Boolean.parseBoolean(itemStringArray[0])) {
+					matchEquipmentSlots = true;
 					setSlot(Equipment.SLOTS.valueOf(itemStringArray[3]), Integer.parseInt(itemStringArray[1]),
 							Integer.parseInt(itemStringArray[2]));
 				} else {
@@ -685,7 +693,7 @@ public class ExtraInventory {
 				toReturn = toReturn.concat(":");
 				toReturn = toReturn.concat(slotToString(item.inSlot));
 			}
-			toReturn = toReturn.concat("|");
+			toReturn = toReturn.concat("-");
 		}
 
 		return toReturn;
@@ -737,29 +745,30 @@ public class ExtraInventory {
 	private int nameToId(String name) {
 		BufferedReader br;
 		try {
-			br = new BufferedReader(new FileReader(System.getProperty("user.dir") + "/bin/scripts/ShotdoxAPI/util/names.txt"));
-		    StringBuilder sb = new StringBuilder();
-		    String line = br.readLine();
+			br = new BufferedReader(
+					new FileReader(System.getProperty("user.dir") + "/bin/scripts/ShotdoxAPI/util/names.txt"));
+			StringBuilder sb = new StringBuilder();
+			String line = br.readLine();
 
-		    while (line != null) {
-		        sb.append(line);
-		        sb.append(System.lineSeparator());
-		        line = br.readLine();
-		    }
-		    String[] everything = sb.toString().split("}");
-		    for (String item: everything){
-		    	if (item.toLowerCase().contains(name.toLowerCase())){
-		    		if (item.split("\"")[7].toLowerCase().equals(name.toLowerCase())){
-		    			br.close();
-		    			return Integer.parseInt(item.split("\"")[1]);
-		    		}
-		    	}
-		    }
+			while (line != null) {
+				sb.append(line);
+				sb.append(System.lineSeparator());
+				line = br.readLine();
+			}
+			String[] everything = sb.toString().split("}");
+			for (String item : everything) {
+				if (item.toLowerCase().contains(name.toLowerCase())) {
+					if (item.split("\"")[7].toLowerCase().equals(name.toLowerCase())) {
+						br.close();
+						return Integer.parseInt(item.split("\"")[1]);
+					}
+				}
+			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		return 0;
 	}
 }
